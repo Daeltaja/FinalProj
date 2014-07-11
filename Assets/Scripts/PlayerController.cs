@@ -9,6 +9,8 @@ public class PlayerController : MonoBehaviour {
 	Vector3 forceAcc = Vector3.zero;
 	float mass = 1f;
 	public GameObject placementIndicator, playerSprite;
+	public Transform hitDetect;
+
 	Vector3 lookAt;
 	Vector3 rollDir;
 	bool isRolling, rechargeStam;
@@ -23,7 +25,6 @@ public class PlayerController : MonoBehaviour {
 	{
 		rollDir = Vector3.right;
 	}
-	
 
 	void Update () 
 	{
@@ -83,13 +84,25 @@ public class PlayerController : MonoBehaviour {
 			{
 				rollDir = new Vector3(1, 0, -1);
 			}
-			Raycast();
+			hitDetect.position = transform.position + rollDir; //sets the location of the OverlapSphere for attacking direction
+
+			if(Input.GetButtonDown ("Fire1"))
+			{
+				if(currStam >= 10f)
+				{
+					rechargeStam = false;
+					StopCoroutine("staminaChargeDelay");
+					Raycast();
+					currStam-=10f;
+					StartCoroutine("staminaChargeDelay");
+				}
+			}
 		}
 
 
 		if(rechargeStam)
 		{
-			currStam += 15f * Time.deltaTime;
+			currStam += 25f * Time.deltaTime;
 			if(currStam >= maxStam)
 			{
 				currStam = maxStam;
@@ -100,14 +113,21 @@ public class PlayerController : MonoBehaviour {
 
 	void Raycast()
 	{
-		RaycastHit hit;
-		Debug.DrawRay(playerSprite.transform.position, rollDir * 3f, Color.magenta );
-		if(Physics.Raycast (playerSprite.transform.position, rollDir, out hit, 1f))
-		{
+		Collider[] hitColliders = Physics.OverlapSphere (hitDetect.position, .3f);
 
+		for(int i = 0; i < hitColliders.Length; i++)
+		{
+			Destroy(hitColliders[i].gameObject);
 		}
+		
 	}
 
+	void OnDrawGizmos() //for visual debug
+	{
+		Gizmos.color = Color.magenta;
+		//Gizmos.DrawSphere(playerSprite.transform.position+rollDir, .6f);
+	}
+	
 	IEnumerator rollTimer()
 	{
 		yield return new WaitForSeconds(.2f);
@@ -117,18 +137,25 @@ public class PlayerController : MonoBehaviour {
 		rechargeStam = true;
 	}
 
+	IEnumerator staminaChargeDelay()
+	{
+		yield return new WaitForSeconds(.8f);
+		rechargeStam = true;
+	}
+
 	void FixedUpdate ()
 	{
 		if(!isRolling)
 		{
-			if(currStam >= 30)
+			if(currStam >= 20)
 			{
 				if(Input.GetButtonDown("Jump"))
 				{
+					StopCoroutine("rollTimer");
 					rechargeStam = false;
-					rigidbody.AddForce(rollDir * 15f , ForceMode.Impulse);
+					rigidbody.AddForce(rollDir * 16f , ForceMode.Impulse);
 					isRolling = true;
-					currStam -= 30f;
+					currStam -= 20f;
 					StartCoroutine("rollTimer");
 				}
 			}
