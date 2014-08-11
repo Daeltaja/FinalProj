@@ -3,33 +3,78 @@ using System.Collections;
 
 public class PlayerBase : MonoBehaviour {
 
-	public float speed, rollForce, rollDuration, hitDelay, stamChargeDelay, attackResetDelay;
+	public float speed, rollForce, rollDuration, hitDelay, stamChargeDelay, attackResetDelay, restDelay;
 
-	public GameObject placementIndicator, playerSprite;
+	public GameObject placementIndicator, playerSprite, playerSpriteChild;
 	public Transform hitDetect;
+
 	public GUIText position;
+
+	public static bool inGame = true;
 
 	[HideInInspector]public Vector3 lookAt;
 	[HideInInspector]public Vector3 rollDir;
-	[HideInInspector]public bool isRolling, isAttacking, rechargeStam;
+	[HideInInspector]public bool isRolling, isResting, isAttacking, rechargeStam;
 	[HideInInspector]public bool lockedOn;
 	[HideInInspector]public bool attackGizmo;
 	
-	[HideInInspector]public float currHealth = 100f, maxHealth = 100f;
-	[HideInInspector]public float currStam = 100f, maxStam = 100f;
+	[HideInInspector]public float currHealth = 100f, maxHealth = 100f, healthFrom;
+	[HideInInspector]public float currStam = 100f, maxStam = 100f, stamFrom;
 	
-	public Texture healthOver, healthUnder, stamOver, stamUnder;
+	public Texture healthOver, healthUnder, stamOver, stamUnder, statusBarAnim;
 	
 	[HideInInspector]public Transform _transform;
 	[HideInInspector]public CharacterController _controller;
 
-	void Start () 
+	public float shakeAmount, shakeDuration;
+	public iTween.EaseType easeType;
+	[HideInInspector]public Color _colorValue;
+	[HideInInspector]public GameObject myCamera;
+	[HideInInspector]public static int warrScore, rangScore;
+	
+	protected void Awake () 
 	{
-		
+		_controller = GetComponent<CharacterController>();
+		_transform = this.transform;
+		_colorValue = playerSpriteChild.GetComponent<SpriteRenderer>().color;
+		myCamera = GameObject.Find("CameraParent");
 	}
 
-	void Update () 
+	protected void Update () 
 	{
-	
+		if(rechargeStam) //stamina recharging
+		{
+			currStam += 25f * Time.deltaTime;
+			if(currStam >= maxStam)
+			{
+				currStam = maxStam;
+				rechargeStam = false;
+			}
+			if(currStam <= 0f)
+			{
+				currStam = 0f;
+			}
+		}
+		if(_transform.position.y > -5.46f) //check if the player moves up on Y axis
+		{
+			_transform.position = new Vector3 (_transform.position.x, -5.46f, _transform.position.z);
+		}
+	}
+
+	public IEnumerator RestartRound()
+	{
+		yield return new WaitForSeconds(3f);
+		Application.LoadLevel(Application.loadedLevelName);
+		inGame = true;
+	}
+
+	public void Shake()
+	{	
+		iTween.ShakePosition(playerSprite.gameObject, iTween.Hash("x", shakeAmount, "time", shakeDuration, "easetype", easeType, "islocal", true));
+	}
+
+	public void FlashRed()
+	{
+		iTween.ColorFrom(playerSprite.transform.GetChild(0).gameObject, iTween.Hash("r", 1, "b", 0, "g", 0, "a", 1,"time", 0.3f));
 	}
 }

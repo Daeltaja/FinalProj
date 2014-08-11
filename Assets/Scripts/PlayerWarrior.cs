@@ -3,42 +3,59 @@ using System.Collections;
 
 public class PlayerWarrior : PlayerBase {
 
-	private void Awake()
+	public float damage;
+	GUIText rangerScore;
+
+	new void Awake()
 	{
-		_controller = GetComponent<CharacterController>();
-		_transform = this.transform;
+		base.Awake();
+		rangerScore = GameObject.Find ("GUIRangerScore").gameObject.GetComponent<GUIText>();
 	}
 
 	void Start () 
 	{
 		rollDir = Vector3.right;
+		healthFrom = currHealth;
+		stamFrom = currStam;
+		rangerScore.text = ""+rangScore;
 	}
 
-	void Update () 
+	new void Update () 
 	{
-		Move();
-		Abilities();
-
-		DebugStuff();
-
-		if(rechargeStam) //stamina recharging
+		if(inGame)
 		{
-			currStam += 25f * Time.deltaTime;
-			if(currStam >= maxStam)
-			{
-				currStam = maxStam;
-				rechargeStam = false;
-			}
+			Move();
+			Abilities();
+			base.Update();
 		}
-		if(_transform.position.y > -5.46f) //check if the player moves up on Y axis
+	}
+
+	void ApplyDamage(int amount)
+	{
+		currHealth -= amount;
+		healthFrom = currHealth+amount;
+		Shake();
+		FlashRed();
+		if(currHealth <= 0)
 		{
-			_transform.position = new Vector3 (_transform.position.x, -5.46f, _transform.position.z);
+			//Play death pose
+			inGame = false;
+			rangScore++;
+			rangerScore.text = "" +rangScore;
+			currHealth = 0;
+			StartCoroutine("RestartRound");
+			if(rangScore == 3)
+			{
+				//win pose
+				//win GUI
+				//restart buttons
+			}
 		}
 	}
 
 	void Move()
 	{
-		if(!isRolling && !isAttacking)
+		if(!isRolling && !isResting && !isAttacking)
 		{
 			if(Input.GetKey (KeyCode.D) || Input.GetAxisRaw("Horizontal") > 0 || Input.GetAxisRaw("HorizDPad") > 0)
 			{
@@ -77,19 +94,19 @@ public class PlayerWarrior : PlayerBase {
 			
 			if(!lockedOn)
 			{
-				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad") < 0 && Input.GetAxisRaw("VertDPad") > 0))
+				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad") < 0 && Input.GetAxisRaw("VertDPad") > 0) || (Input.GetAxisRaw("Horizontal") < 0 && Input.GetAxisRaw("Vertical") > 0))
 				{
 					rollDir = new Vector3(-1, 0, 1);
 				}
-				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad") > 0 && Input.GetAxisRaw("VertDPad") > 0))
+				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad") > 0 && Input.GetAxisRaw("VertDPad") > 0) || (Input.GetAxisRaw("Horizontal") > 0 && Input.GetAxisRaw("Vertical") > 0))
 				{
 					rollDir = new Vector3(1, 0, 1);
 				}
-				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad") < 0 && Input.GetAxisRaw("VertDPad") < 0))
+				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad") < 0 && Input.GetAxisRaw("VertDPad") < 0) || (Input.GetAxisRaw("Horizontal") < 0 && Input.GetAxisRaw("Vertical") < 0))
 				{
 					rollDir = new Vector3(-1, 0, -1);
 				}
-				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad") > 0 && Input.GetAxisRaw("VertDPad") < 0))
+				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad") > 0 && Input.GetAxisRaw("VertDPad") < 0) || (Input.GetAxisRaw("Horizontal") > 0 && Input.GetAxisRaw("Vertical") < 0))
 				{
 					rollDir = new Vector3(1, 0, -1);
 				}
@@ -105,10 +122,12 @@ public class PlayerWarrior : PlayerBase {
 			if(currStam >= 10f)
 			{
 				currStam -= 10f;
+				stamFrom = currStam+10f;
 				rechargeStam = false;
 				isAttacking = true;
 				//attack
 				hitDelay = 0f;
+				damage = 15f;
 				StartCoroutine("HitDetection", hitDelay);
 				StartCoroutine("AttackResetDelay", hitDelay+.2f);
 				//stamina
@@ -121,10 +140,13 @@ public class PlayerWarrior : PlayerBase {
 			if(currStam >= 20f)
 			{
 				currStam -= 20f;
+				stamFrom = currStam+20f;
 				rechargeStam = false;
 				isAttacking = true;
 				//attack
 				hitDelay = 0.8f;
+				damage = 30f;
+				StartCoroutine("SlamShakeDelay");
 				StartCoroutine("HitDetection", hitDelay);
 				StartCoroutine("AttackResetDelay", hitDelay+.4f);
 				//stamina
@@ -163,6 +185,7 @@ public class PlayerWarrior : PlayerBase {
 					isRolling = true;
 					rechargeStam = false;
 					currStam -= 20f;
+					stamFrom = currStam+20f;
 					StopCoroutine("RollDuration");
 					StartCoroutine("RollDuration");
 					StartCoroutine("StaminaChargeDelay", stamChargeDelay);
@@ -173,6 +196,25 @@ public class PlayerWarrior : PlayerBase {
 		{
 			_controller.Move (rollDir * rollForce * Time.deltaTime); //moving the charController
 		}
+		if(currHealth < healthFrom)
+		{
+			StartCoroutine("DelayHealthRecharge");
+		}
+		if(currStam < stamFrom)
+		{
+			stamFrom -= Time.deltaTime * 15f;
+		}
+	}
+
+	IEnumerator DelayHealthRecharge()
+	{
+		yield return new WaitForSeconds(.5f);
+		healthFrom -= Time.deltaTime * 12f;
+	}
+
+	public void StopHealthCharge()
+	{
+		StopCoroutine("DelayHealthRecharge");
 	}
 	
 	IEnumerator HitDetection(float hitDelay)
@@ -180,6 +222,7 @@ public class PlayerWarrior : PlayerBase {
 		yield return new WaitForSeconds(hitDelay); //hitDelay could sync to frame in animation
 		Collider[] hitColliders = Physics.OverlapSphere (hitDetect.position, .3f); //radius 
 		attackGizmo = true;
+
 		for(int i = 0; i < hitColliders.Length; i++)
 		{
 			//Destroy(hitColliders[i].gameObject);
@@ -187,9 +230,20 @@ public class PlayerWarrior : PlayerBase {
 			{
 				hitColliders[i].transform.GetChild(0).GetComponent<Animator>().SetTrigger("Hit");
 			}
+			if(hitColliders[i].tag == "Ranger")
+			{
+				hitColliders[i].collider.BroadcastMessage("ApplyDamage", damage);
+				hitColliders[i].collider.BroadcastMessage("StopHealthCharge");
+			}
 		}
 		yield return new WaitForSeconds(.2f);
 		attackGizmo = false;
+	}
+
+	IEnumerator SlamShakeDelay()
+	{
+		yield return new WaitForSeconds(hitDelay); //hitDelay could sync to frame in animation
+		myCamera.BroadcastMessage("ShakeSlam");
 	}
 
 	IEnumerator StaminaChargeDelay(float stamChargeDelay)
@@ -206,17 +260,11 @@ public class PlayerWarrior : PlayerBase {
 
 	IEnumerator RollDuration()
 	{
+		isResting = true;
 		yield return new WaitForSeconds(rollDuration);
 		isRolling = false;
-	}
-
-	void ApplyDamage(int amount)
-	{
-		currHealth -= amount;
-		if(currHealth < 0)
-		{
-			//Splat
-		}
+		yield return new WaitForSeconds(restDelay);
+		isResting = false;
 	}
 
 	void OnDrawGizmos() //for visual debug
@@ -224,31 +272,5 @@ public class PlayerWarrior : PlayerBase {
 		Gizmos.color = Color.magenta;
 		if(attackGizmo)
 			Gizmos.DrawSphere(playerSprite.transform.position+rollDir, .6f);
-	}
-
-	void OnGUI()
-	{
-		GUI.DrawTexture (new Rect(10, 10, 100, 15), healthUnder);
-		GUI.DrawTexture (new Rect(10, 10, currHealth, 15), healthOver);
-
-		GUI.DrawTexture (new Rect(10, 30, 100, 15), stamUnder);
-		GUI.DrawTexture (new Rect(10, 30, currStam, 15), stamOver);
-	}
-
-	void DebugStuff()
-	{
-		//Debug Stuff
-		position.text = transform.position.x.ToString("0.0") + "x" + "  " +transform.position.z.ToString("0.0") + "z";
-		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-		RaycastHit hit;
-		if (Physics.Raycast(ray, out hit, 100f) && hit.normal.y > 0.999)
-		{
-			placementIndicator.transform.position = hit.point;
-			lookAt = hit.point  + new Vector3(0f, 0.51f, 0f);
-		}
-		if(lookAt != null)
-		{
-			//playerSprite.transform.LookAt(lookAt);
-		}
 	}
 }
