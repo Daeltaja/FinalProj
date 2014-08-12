@@ -18,6 +18,7 @@ public class PlayerWarrior : PlayerBase {
 		healthFrom = currHealth;
 		stamFrom = currStam;
 		rangerScore.text = ""+rangScore;
+		_myAnim = GameObject.Find ("Vanguard").GetComponent<Animator>();
 	}
 
 	new void Update () 
@@ -43,7 +44,9 @@ public class PlayerWarrior : PlayerBase {
 			rangScore++;
 			rangerScore.text = "" +rangScore;
 			currHealth = 0;
+			_myAnim.SetTrigger("Die");
 			StartCoroutine("RestartRound");
+
 			if(rangScore == 3)
 			{
 				//win pose
@@ -57,7 +60,17 @@ public class PlayerWarrior : PlayerBase {
 	{
 		if(!isRolling && !isResting && !isAttacking)
 		{
-			if(Input.GetKey (KeyCode.D) || Input.GetAxisRaw("Horizontal") > 0 || Input.GetAxisRaw("HorizDPad") > 0)
+			if(Input.GetAxisRaw("Horizontal") != 0 || Input.GetAxisRaw("Vertical") != 0 )
+			{
+				_myAnim.SetBool ("Walking", true);
+			}
+
+			if(Input.GetAxisRaw("Horizontal") == 0 && Input.GetAxisRaw("Vertical") == 0)
+			{
+				_myAnim.SetBool ("Walking", false);
+			}
+
+			if(Input.GetAxisRaw("Horizontal") > 0 || Input.GetAxisRaw("HorizDPad") > 0)
 			{
 				_controller.Move (Vector3.right * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -66,7 +79,7 @@ public class PlayerWarrior : PlayerBase {
 					_transform.GetChild(0).transform.localScale = new Vector3(1.6f, 1.6f, 1.6f);
 				}
 			}
-			if(Input.GetKey (KeyCode.A) || Input.GetAxisRaw("Horizontal") < 0 || Input.GetAxisRaw("HorizDPad") < 0)
+			if(Input.GetAxisRaw("Horizontal") < 0 || Input.GetAxisRaw("HorizDPad") < 0)
 			{
 				_controller.Move (-Vector3.right * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -75,7 +88,7 @@ public class PlayerWarrior : PlayerBase {
 					_transform.GetChild(0).transform.localScale = new Vector3(-1.6f, 1.6f, 1.6f);
 				}	
 			}
-			if(Input.GetKey (KeyCode.W) || Input.GetAxisRaw("Vertical") > 0 || Input.GetAxisRaw("VertDPad") > 0)
+			if(Input.GetAxisRaw("Vertical") > 0 || Input.GetAxisRaw("VertDPad") > 0)
 			{
 				_controller.Move (Vector3.forward * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -83,7 +96,7 @@ public class PlayerWarrior : PlayerBase {
 					rollDir = Vector3.forward;
 				}
 			}
-			if(Input.GetKey (KeyCode.S) || Input.GetAxisRaw("Vertical") < 0 || Input.GetAxisRaw("VertDPad") < 0)
+			if(Input.GetAxisRaw("Vertical") < 0 || Input.GetAxisRaw("VertDPad") < 0)
 			{
 				_controller.Move (-Vector3.forward * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -110,7 +123,7 @@ public class PlayerWarrior : PlayerBase {
 				{
 					rollDir = new Vector3(1, 0, -1);
 				}
-				hitDetect.position = _transform.position + rollDir; //sets the location of the OverlapSphere for attacking direction
+				hitDetect.position = _transform.position + rollDir*1.2f; //sets the location of the OverlapSphere for attacking direction
 			}
 		}
 	}
@@ -125,11 +138,12 @@ public class PlayerWarrior : PlayerBase {
 				stamFrom = currStam+10f;
 				rechargeStam = false;
 				isAttacking = true;
+				_myAnim.SetTrigger("AttackNorm");
 				//attack
 				hitDelay = 0f;
 				damage = 15f;
 				StartCoroutine("HitDetection", hitDelay);
-				StartCoroutine("AttackResetDelay", hitDelay+.2f);
+				StartCoroutine("AttackResetDelay", hitDelay+0.4f);
 				//stamina
 				StopCoroutine("StaminaChargeDelay");
 				StartCoroutine("StaminaChargeDelay", stamChargeDelay);
@@ -143,6 +157,7 @@ public class PlayerWarrior : PlayerBase {
 				stamFrom = currStam+20f;
 				rechargeStam = false;
 				isAttacking = true;
+				_myAnim.SetTrigger("AttackPower");
 				//attack
 				hitDelay = 0.8f;
 				damage = 30f;
@@ -163,18 +178,21 @@ public class PlayerWarrior : PlayerBase {
 			{
 				speed = 3f;
 				lockedOn = true;
+				_myAnim.SetTrigger("Lock");
 				StopCoroutine("StaminaChargeDelay");
 			}
-			if(Input.GetButtonUp ("LockOn"))
-			{
-				speed = 6f;
-				lockedOn = false;
-				StartCoroutine("StaminaChargeDelay", stamChargeDelay);
-			}
+
 			if(Input.GetButtonDown ("Fire1"))
 			{
 				Attack ();
 			}
+		}
+		if(Input.GetButtonUp ("LockOn"))
+		{
+			speed = 6f;
+			lockedOn = false;
+			_myAnim.SetTrigger("NoLock");
+			StartCoroutine("StaminaChargeDelay", stamChargeDelay);
 		}
 		if(!isRolling) //rolling
 		{
@@ -186,6 +204,7 @@ public class PlayerWarrior : PlayerBase {
 					rechargeStam = false;
 					currStam -= 20f;
 					stamFrom = currStam+20f;
+					_myAnim.SetTrigger("Roll");
 					StopCoroutine("RollDuration");
 					StartCoroutine("RollDuration");
 					StartCoroutine("StaminaChargeDelay", stamChargeDelay);
@@ -220,7 +239,7 @@ public class PlayerWarrior : PlayerBase {
 	IEnumerator HitDetection(float hitDelay)
 	{
 		yield return new WaitForSeconds(hitDelay); //hitDelay could sync to frame in animation
-		Collider[] hitColliders = Physics.OverlapSphere (hitDetect.position, .3f); //radius 
+		Collider[] hitColliders = Physics.OverlapSphere (hitDetect.position, .8f); //radius 
 		attackGizmo = true;
 
 		for(int i = 0; i < hitColliders.Length; i++)
@@ -270,7 +289,7 @@ public class PlayerWarrior : PlayerBase {
 	void OnDrawGizmos() //for visual debug
 	{
 		Gizmos.color = Color.magenta;
-		if(attackGizmo)
-			Gizmos.DrawSphere(playerSprite.transform.position+rollDir, .6f);
+		//if(attackGizmo)
+			//Gizmos.DrawSphere(playerSprite.transform.position+rollDir, .6f);
 	}
 }

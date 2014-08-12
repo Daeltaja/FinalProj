@@ -21,8 +21,6 @@ public class PlayerBase : MonoBehaviour {
 	[HideInInspector]public float currHealth = 100f, maxHealth = 100f, healthFrom;
 	[HideInInspector]public float currStam = 100f, maxStam = 100f, stamFrom;
 	
-	public Texture healthOver, healthUnder, stamOver, stamUnder, statusBarAnim;
-	
 	[HideInInspector]public Transform _transform;
 	[HideInInspector]public CharacterController _controller;
 
@@ -31,6 +29,7 @@ public class PlayerBase : MonoBehaviour {
 	[HideInInspector]public Color _colorValue;
 	[HideInInspector]public GameObject myCamera;
 	[HideInInspector]public static int warrScore, rangScore;
+	[HideInInspector]public Animator _myAnim;
 	
 	protected void Awake () 
 	{

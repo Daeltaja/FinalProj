@@ -64,7 +64,7 @@ public class PlayerRanger : PlayerBase {
 	{
 		if(!isRolling && !isAttacking)
 		{
-			if(Input.GetKey (KeyCode.RightArrow) || Input.GetAxisRaw("Horizontal2") > 0 || Input.GetAxisRaw("HorizDPad2") > 0)
+			if(Input.GetKey (KeyCode.D) || Input.GetKey (KeyCode.RightArrow) || Input.GetAxisRaw("Horizontal2") > 0 || Input.GetAxisRaw("HorizDPad2") > 0)
 			{
 				_controller.Move (Vector3.right * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -75,7 +75,7 @@ public class PlayerRanger : PlayerBase {
 					_transform.GetChild(0).transform.localScale = new Vector3(1.6f, 1.6f, 1.6f);
 				}
 			}
-			if(Input.GetKey (KeyCode.LeftArrow) || Input.GetAxisRaw("Horizontal2") < 0 || Input.GetAxisRaw("HorizDPad2") < 0)
+			if(Input.GetKey (KeyCode.A) || Input.GetKey (KeyCode.LeftArrow) || Input.GetAxisRaw("Horizontal2") < 0 || Input.GetAxisRaw("HorizDPad2") < 0)
 			{
 				_controller.Move (-Vector3.right * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -86,7 +86,7 @@ public class PlayerRanger : PlayerBase {
 					_transform.GetChild(0).transform.localScale = new Vector3(-1.6f, 1.6f, 1.6f);
 				}	
 			}
-			if(Input.GetKey (KeyCode.UpArrow) || Input.GetAxisRaw("Vertical2") > 0 || Input.GetAxisRaw("VertDPad2") > 0)
+			if(Input.GetKey (KeyCode.W) || Input.GetKey (KeyCode.UpArrow) || Input.GetAxisRaw("Vertical2") > 0 || Input.GetAxisRaw("VertDPad2") > 0)
 			{
 				_controller.Move (Vector3.forward * speed * Time.deltaTime);
 				if(!lockedOn)
@@ -96,7 +96,7 @@ public class PlayerRanger : PlayerBase {
 					rollDir = Vector3.forward;
 				}
 			}
-			if(Input.GetKey (KeyCode.DownArrow) || Input.GetAxisRaw("Vertical2") < 0 || Input.GetAxisRaw("VertDPad2") < 0)
+			if(Input.GetKey (KeyCode.S) || Input.GetKey (KeyCode.DownArrow) || Input.GetAxisRaw("Vertical2") < 0 || Input.GetAxisRaw("VertDPad2") < 0)
 			{
 				_controller.Move (-Vector3.forward * speed * Time.deltaTime);
 				if(!lockedOn)
