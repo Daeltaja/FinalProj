@@ -5,6 +5,7 @@ public class PlayerWarrior : PlayerBase {
 
 	public float damage;
 	GUIText rangerScore;
+	GameObject swordAttack, swordPower, hit, roll;
 
 	new void Awake()
 	{
@@ -19,6 +20,10 @@ public class PlayerWarrior : PlayerBase {
 		stamFrom = currStam;
 		rangerScore.text = ""+rangScore;
 		_myAnim = GameObject.Find ("Vanguard").GetComponent<Animator>();
+		swordAttack = GameObject.Find ("AudioAttack");
+		swordPower = GameObject.Find ("AudioAttackPower");
+		hit = GameObject.Find ("AudioHit1");
+		roll = GameObject.Find ("AudioRoll1");
 	}
 
 	new void Update () 
@@ -37,6 +42,8 @@ public class PlayerWarrior : PlayerBase {
 		healthFrom = currHealth+amount;
 		Shake();
 		FlashRed();
+		hit.audio.Play ();
+
 		if(currHealth <= 0)
 		{
 			//Play death pose
@@ -49,9 +56,9 @@ public class PlayerWarrior : PlayerBase {
 
 			if(rangScore == 3)
 			{
-				//win pose
-				//win GUI
-				//restart buttons
+				inGame = false;
+				boutEnd = true;
+				WINTEXT.text = "Ranger Wins!";
 			}
 		}
 	}
@@ -139,6 +146,7 @@ public class PlayerWarrior : PlayerBase {
 				rechargeStam = false;
 				isAttacking = true;
 				_myAnim.SetTrigger("AttackNorm");
+				swordAttack.audio.Play ();
 				//attack
 				hitDelay = 0f;
 				damage = 15f;
@@ -158,16 +166,24 @@ public class PlayerWarrior : PlayerBase {
 				rechargeStam = false;
 				isAttacking = true;
 				_myAnim.SetTrigger("AttackPower");
+				swordAttack.audio.Play ();
 				//attack
 				hitDelay = 0.8f;
 				damage = 30f;
 				StartCoroutine("SlamShakeDelay");
+				StartCoroutine("delaySlamNoise");
 				StartCoroutine("HitDetection", hitDelay);
 				StartCoroutine("AttackResetDelay", hitDelay+.4f);
 				//stamina
 				StopCoroutine("StaminaChargeDelay");
 			}
 		}
+	}
+
+	IEnumerator delaySlamNoise()
+	{
+		yield return new WaitForSeconds(.7f);
+		swordPower.audio.Play ();
 	}
 
 	void Abilities()
@@ -205,6 +221,7 @@ public class PlayerWarrior : PlayerBase {
 					currStam -= 20f;
 					stamFrom = currStam+20f;
 					_myAnim.SetTrigger("Roll");
+					roll.audio.Play ();
 					StopCoroutine("RollDuration");
 					StartCoroutine("RollDuration");
 					StartCoroutine("StaminaChargeDelay", stamChargeDelay);
@@ -240,6 +257,7 @@ public class PlayerWarrior : PlayerBase {
 	{
 		yield return new WaitForSeconds(hitDelay); //hitDelay could sync to frame in animation
 		Collider[] hitColliders = Physics.OverlapSphere (hitDetect.position, .8f); //radius 
+
 		attackGizmo = true;
 
 		for(int i = 0; i < hitColliders.Length; i++)

@@ -47,14 +47,17 @@ public class Arrow : MonoBehaviour {
 		{
 			if(hit.collider.tag == "Prop")
 			{
-				rayDist = 0.01f;
+				rayDist = 0.015f;
 				Collection();
 			}
 			if(hit.collider.tag == "Warrior")
 			{
-				rayDist = 0.01f;
-				hit.collider.BroadcastMessage("ApplyDamage", damage);
-				hit.collider.BroadcastMessage("StopHealthCharge");
+				rayDist = 0.015f;
+				if(!hit.collider.GetComponent<PlayerWarrior>().lockedOn)
+				{
+					hit.collider.BroadcastMessage("ApplyDamage", damage);
+					hit.collider.BroadcastMessage("StopHealthCharge");
+				}
 			}
 		}
 

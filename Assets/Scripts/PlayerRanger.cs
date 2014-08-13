@@ -10,6 +10,7 @@ public class PlayerRanger : PlayerBase {
 	bool powershot;
 	float arrowForce = 40f;
 	GUIText warriorScore;
+    GameObject shoot, hit, roll;
 
 	new void Awake()
 	{
@@ -24,6 +25,9 @@ public class PlayerRanger : PlayerBase {
 		healthFrom = currHealth;
 		stamFrom = currStam;
 		warriorScore.text = ""+warrScore;
+		shoot = GameObject.Find ("AudioShoot");
+		hit = GameObject.Find ("AudioHit2");
+		roll = GameObject.Find ("AudioRoll2");
 	}
 
 	new void Update () 
@@ -42,6 +46,7 @@ public class PlayerRanger : PlayerBase {
 		healthFrom = currHealth+amount;
 		Shake();
 		FlashRed();
+		hit.audio.Play();
 		if(currHealth <= 0)
 		{
 			//Play death pose
@@ -53,9 +58,10 @@ public class PlayerRanger : PlayerBase {
 			//if score = 3, player wins
 			if(warrScore == 3)
 			{
-				//win pose
-				//win GUI
-				//restart buttons
+				inGame = false;
+				boutEnd = true;
+				WINTEXT.text = "Vanguard Wins!";
+
 			}
 		}
 	}
@@ -139,7 +145,6 @@ public class PlayerRanger : PlayerBase {
 		{
 			if(!lockedOn)
 			{
-				
 				if(currStam >= 10f)
 				{
 					currStam -= 10f;
@@ -148,12 +153,13 @@ public class PlayerRanger : PlayerBase {
 					rechargeStam = false;
 					isAttacking = true;
 					arrowForce = 40f;
+					shoot.audio.Play ();
 					//attack
 					GameObject arrowGO = Instantiate(arrow, _transform.position + rollDir, _transform.rotation) as GameObject;
 					arrowGO.rigidbody.AddForce(rollDir * arrowForce, ForceMode.Impulse);
 					arrowGO.transform.localEulerAngles = arrowDir;
 					arrowGO.transform.GetChild(0).transform.localEulerAngles = arrowSpriteDir;
-					arrowGO.GetComponent<Arrow>().damage = 10f;
+					arrowGO.GetComponent<Arrow>().damage = 15f;
 					//StartCoroutine("HitDetection", hitDelay);
 					StartCoroutine("AttackResetDelay", hitDelay);
 					//stamina
@@ -167,6 +173,7 @@ public class PlayerRanger : PlayerBase {
 				isAttacking = true;
 				arrowForce = 50f;
 				arrowsCurr--;
+				shoot.audio.Play ();
 				//attack
 				GameObject arrowGO = Instantiate(arrow, _transform.position + rollDir, _transform.rotation) as GameObject;
 				arrowGO.rigidbody.AddForce(rollDir * arrowForce, ForceMode.Impulse);
@@ -211,7 +218,7 @@ public class PlayerRanger : PlayerBase {
 					currStam -= 20f * Time.deltaTime;
 					if(currStam <= stamDynamic-40f)
 					{
-						currStam = currStam;
+					//	currStam = currStam;
 						powershot = false;
 					}
 				}
@@ -227,6 +234,7 @@ public class PlayerRanger : PlayerBase {
 					rechargeStam = false;
 					currStam -= 20f;
 					stamFrom = currStam+20f;
+					roll.audio.Play ();
 					StopCoroutine("RollDuration");
 					StartCoroutine("RollDuration");
 					StartCoroutine("StaminaChargeDelay", stamChargeDelay);

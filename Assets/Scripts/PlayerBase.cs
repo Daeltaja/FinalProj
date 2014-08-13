@@ -8,15 +8,16 @@ public class PlayerBase : MonoBehaviour {
 	public GameObject placementIndicator, playerSprite, playerSpriteChild;
 	public Transform hitDetect;
 
-	public GUIText position;
+	public GUIText WINTEXT;
 
-	public static bool inGame = true;
+	public static bool inGame = true, boutEnd = false;
 
 	[HideInInspector]public Vector3 lookAt;
 	[HideInInspector]public Vector3 rollDir;
 	[HideInInspector]public bool isRolling, isResting, isAttacking, rechargeStam;
 	[HideInInspector]public bool lockedOn;
 	[HideInInspector]public bool attackGizmo;
+	[HideInInspector]public AudioSource _audioSource;
 	
 	[HideInInspector]public float currHealth = 100f, maxHealth = 100f, healthFrom;
 	[HideInInspector]public float currStam = 100f, maxStam = 100f, stamFrom;

@@ -3,6 +3,7 @@ using System.Collections;
 
 public class Interface : MonoBehaviour {
 
+	public GUISkin mySkin;
 	GameObject warrior, ranger;
 	PlayerWarrior pw;
 	PlayerRanger pr;
@@ -20,6 +21,7 @@ public class Interface : MonoBehaviour {
 	
 	void OnGUI()
 	{
+		GUI.skin = mySkin;
 		//WARRIOR
 		GUI.DrawTexture (new Rect(10, 10, 100, 15), healthUnder);
 		GUI.DrawTexture (new Rect(10, 10, pw.healthFrom, 15), statusBarAnim);
@@ -50,5 +52,6 @@ public class Interface : MonoBehaviour {
 			GUI.DrawTexture(new Rect(Screen.width-xthing, 45, arrowUI.width*2, arrowUI.height*2), arrowUI);
 			xthing = xthing +18f;
 		}
+
 	}
 }
