@@ -61,7 +61,7 @@ public class PlayerRanger : PlayerBase {
 				inGame = false;
 				boutEnd = true;
 				WINTEXT.text = "Vanguard Wins!";
-
+				warrScore = 0;
 			}
 		}
 	}
@@ -118,18 +118,24 @@ public class PlayerRanger : PlayerBase {
 				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad2") < 0 && Input.GetAxisRaw("VertDPad2") > 0) || (Input.GetAxisRaw("Horizontal2") < 0 && Input.GetAxisRaw("Vertical2") > 0))
 				{
 					rollDir = new Vector3(-1, 0, 1);
+					arrowDir = new Vector3(0, 230, 0);
+					arrowSpriteDir = new Vector3(53, -540, -540);
 				}
 				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.W)) || (Input.GetAxisRaw("HorizDPad2") > 0 && Input.GetAxisRaw("VertDPad2") > 0) || (Input.GetAxisRaw("Horizontal2") > 0 && Input.GetAxisRaw("Vertical2") > 0))
 				{
 					rollDir = new Vector3(1, 0, 1);
+					arrowDir = new Vector3(0, -45, 0);
 				}
 				if((Input.GetKey (KeyCode.A) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad2") < 0 && Input.GetAxisRaw("VertDPad2") < 0) || (Input.GetAxisRaw("Horizontal2") < 0 && Input.GetAxisRaw("Vertical2") < 0))
 				{
 					rollDir = new Vector3(-1, 0, -1);
+					arrowDir = new Vector3(0, 130, 0);
+					arrowSpriteDir = new Vector3(50, -180, -180);
 				}
 				if((Input.GetKey (KeyCode.D) && Input.GetKey (KeyCode.S)) || (Input.GetAxisRaw("HorizDPad2") > 0 && Input.GetAxisRaw("VertDPad2") < 0) || (Input.GetAxisRaw("Horizontal2") > 0 && Input.GetAxisRaw("Vertical2") < 0))
 				{
 					rollDir = new Vector3(1, 0, -1);
+					arrowDir = new Vector3(0, 45, 0);
 				}
 
 
@@ -200,12 +206,6 @@ public class PlayerRanger : PlayerBase {
 				StopCoroutine("StaminaChargeDelay");
 				powershot = true;
 			}
-			if(Input.GetButtonUp ("LockOn2"))
-			{
-				speed = 6f;
-				lockedOn = false;
-				StartCoroutine("StaminaChargeDelay", stamChargeDelay);
-			}
 			if(Input.GetButtonDown ("Fire2"))
 			{
 				Attack ();
@@ -223,6 +223,12 @@ public class PlayerRanger : PlayerBase {
 					}
 				}
 			}
+		}
+		if(Input.GetButtonUp ("LockOn2"))
+		{
+			speed = 6f;
+			lockedOn = false;
+			StartCoroutine("StaminaChargeDelay", stamChargeDelay);
 		}
 		if(!isRolling) //rolling
 		{

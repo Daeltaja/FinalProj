@@ -13,6 +13,8 @@ public class Arrow : MonoBehaviour {
 	Vector3 boxScale;
 	BoxCollider boxColl;
 	[HideInInspector]public float damage;
+	PlayerRanger pr;
+	GameObject ranger;
 
 	void Awake()
 	{
@@ -22,6 +24,7 @@ public class Arrow : MonoBehaviour {
 		_myTransform = transform;
 		yPos = new Vector3(0, 1, 0);
 		transform.up = yPos;
+		ranger = GameObject.FindWithTag("Ranger");
 	}
 	
 	void OnCollisionEnter(Collision other)
@@ -57,6 +60,8 @@ public class Arrow : MonoBehaviour {
 				{
 					hit.collider.BroadcastMessage("ApplyDamage", damage);
 					hit.collider.BroadcastMessage("StopHealthCharge");
+					ranger.GetComponent<PlayerRanger>().arrowsCurr++;
+					Destroy(gameObject);
 				}
 			}
 		}

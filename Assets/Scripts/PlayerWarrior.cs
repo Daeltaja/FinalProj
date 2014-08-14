@@ -59,6 +59,7 @@ public class PlayerWarrior : PlayerBase {
 				inGame = false;
 				boutEnd = true;
 				WINTEXT.text = "Ranger Wins!";
+				rangScore = 0;
 			}
 		}
 	}
